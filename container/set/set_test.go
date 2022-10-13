@@ -405,11 +405,25 @@ func TestUnion(t *testing.T) {
 		{Of(3, 4), Of(3, 5), Of(3, 4, 5)},
 		{Of(3, 4), Of(5, 6), Of(3, 4, 5, 6)},
 	} {
+		oldS1 := clone(tt.s1)
+		oldS2 := clone(tt.s2)
 		got := Union(tt.s1, tt.s2)
 		if !equal(got, tt.want) {
 			t.Errorf(
 				"Union(%s, %s): got %s; want %s",
 				tt.s1.debug(), tt.s2.debug(), got.debug(), tt.want.debug(),
+			)
+		}
+		if !equal(tt.s1, oldS1) {
+			t.Errorf(
+				"Union(%s, %s) mutated first arg",
+				tt.s1.debug(), tt.s2.debug(),
+			)
+		}
+		if !equal(tt.s2, oldS2) {
+			t.Errorf(
+				"Union(%s, %s) mutated second arg",
+				tt.s1.debug(), tt.s2.debug(),
 			)
 		}
 	}
@@ -437,11 +451,25 @@ func TestIntersection(t *testing.T) {
 		{Of(3, 4, 5), Of(3, 4, 5), Of(3, 4, 5)},
 		{Of(3, 4), Of(5, 6), Of[int]()},
 	} {
+		oldS1 := clone(tt.s1)
+		oldS2 := clone(tt.s2)
 		got := Intersection(tt.s1, tt.s2)
 		if !equal(got, tt.want) {
 			t.Errorf(
 				"Intersection(%s, %s): got %s; want %s",
 				tt.s1.debug(), tt.s2.debug(), got.debug(), tt.want.debug(),
+			)
+		}
+		if !equal(tt.s1, oldS1) {
+			t.Errorf(
+				"Intersection(%s, %s) mutated first arg",
+				tt.s1.debug(), tt.s2.debug(),
+			)
+		}
+		if !equal(tt.s2, oldS2) {
+			t.Errorf(
+				"Intersection(%s, %s) mutated second arg",
+				tt.s1.debug(), tt.s2.debug(),
 			)
 		}
 	}
@@ -469,11 +497,25 @@ func TestDifference(t *testing.T) {
 		{Of(3, 4, 5), Of(3, 4, 5), Of[int]()},
 		{Of(3, 4), Of(5, 6), Of(3, 4)},
 	} {
+		oldS1 := clone(tt.s1)
+		oldS2 := clone(tt.s2)
 		got := Difference(tt.s1, tt.s2)
 		if !equal(got, tt.want) {
 			t.Errorf(
 				"Difference(%s, %s): got %s; want %s",
 				tt.s1.debug(), tt.s2.debug(), got.debug(), tt.want.debug(),
+			)
+		}
+		if !equal(tt.s1, oldS1) {
+			t.Errorf(
+				"Difference(%s, %s) mutated first arg",
+				tt.s1.debug(), tt.s2.debug(),
+			)
+		}
+		if !equal(tt.s2, oldS2) {
+			t.Errorf(
+				"Difference(%s, %s) mutated second arg",
+				tt.s1.debug(), tt.s2.debug(),
 			)
 		}
 	}
@@ -498,6 +540,14 @@ func equal[E comparable](s1, s2 *Set[E]) bool {
 		return false
 	}
 	return s1.Equal(s2)
+}
+
+// clone is like Clone but preserves "empty" (non-nil, length-0 map) sets.
+func clone[E comparable](s *Set[E]) *Set[E] {
+	if s.m != nil && len(s.m) == 0 {
+		return &Set[E]{m: make(map[E]struct{})}
+	}
+	return s.Clone()
 }
 
 func check[E comparable](t *testing.T, s *Set[E], want []E) {

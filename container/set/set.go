@@ -1,8 +1,7 @@
 // Package set defines a Set type that holds a set of elements.
-//
-// TODO(caleb): NaNs?
 package set
 
+// TODO(caleb): NaNs?
 // TODO(caleb): We probably need to get rid of the dependencies.
 
 import (
@@ -15,7 +14,7 @@ import (
 // Sets are implemented using maps, and have similar performance characteristics.
 // Like maps, Sets are reference types.
 // That is, for Sets s1 = s2 will leave s1 and s2 pointing to the same set of elements:
-// changes to s1 will be reflected in s2 and vice-versa.
+// changes to s1 will be reflected in s2 and vice versa.
 // Unlike maps, the zero value of a Set is usable; there is no equivalent to make.
 // As with maps, concurrent calls to functions and methods that read values are fine;
 // concurrent calls to functions and methods that write values are racy.
@@ -35,6 +34,7 @@ func Of[E comparable](v ...E) *Set[E] {
 	return &Set[E]{m}
 }
 
+// String returns a human-readable representation of the set.
 func (s *Set[E]) String() string {
 	// Print it out in some deterministic order for now.
 	// Better would be to sort numbers numerically.
@@ -46,6 +46,7 @@ func (s *Set[E]) String() string {
 	return fmt.Sprintf("set[%s]", strings.Join(vals, " "))
 }
 
+// GoString returns a Go syntax representation of the set.
 func (s *Set[E]) GoString() string {
 	var v E
 	typeName := fmt.Sprintf("%T", v)
@@ -60,18 +61,14 @@ func (s *Set[E]) GoString() string {
 	return fmt.Sprintf("set.Of[%s](%s)", typeName, strings.Join(vals, ", "))
 }
 
-func (s *Set[E]) init() {
-	if s.m == nil {
-		s.m = make(map[E]struct{})
-	}
-}
-
 // Add adds elements to a set.
 func (s *Set[E]) Add(v ...E) {
 	if len(v) == 0 {
 		return
 	}
-	s.init()
+	if s.m == nil {
+		s.m = make(map[E]struct{})
+	}
 	for _, vv := range v {
 		s.m[vv] = struct{}{}
 	}
@@ -82,7 +79,9 @@ func (s *Set[E]) AddSet(s2 *Set[E]) {
 	if len(s2.m) == 0 {
 		return
 	}
-	s.init()
+	if s.m == nil {
+		s.m = make(map[E]struct{})
+	}
 	for v2 := range s2.m {
 		s.m[v2] = struct{}{}
 	}
