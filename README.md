@@ -32,7 +32,8 @@ TODO: describe
 
 * `github.com/cespare/next/container/set`
 * `github.com/cespare/next/container/heap`
-* `github.com/cespare/next/sync`
+* `github.com/cespare/next/sync/syncutil`
+* `github.com/cespare/next/sync/atomicutil`
 * `github.com/cespare/next/sync/singleflight`
 
 ## License
