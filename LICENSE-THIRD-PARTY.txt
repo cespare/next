@@ -2,6 +2,7 @@ Some packages in this project are derived from existing code in the Go project
 (https://go.dev/). These are:
 
 * sync/singleflight, adapted from https://pkg.go.dev/golang.org/x/sync/singleflight
+* container/heap, adapted from https://pkg.go.dev/container/heap
 
 These packages are released under the Go project license:
 
