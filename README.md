@@ -30,6 +30,7 @@ But, as of October 2022, no `container/set` package has been provided in
 
 TODO: describe
 
+* `github.com/cespare/next/container/ordmap`
 * `github.com/cespare/next/container/set`
 * `github.com/cespare/next/container/heap`
 * `github.com/cespare/next/sync/syncutil`
