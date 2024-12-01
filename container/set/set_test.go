@@ -1,9 +1,10 @@
 package set
 
 import (
+	"cmp"
 	"fmt"
 	"reflect"
-	"sort"
+	"slices"
 	"testing"
 )
 
@@ -208,24 +209,6 @@ func TestContainsAll(t *testing.T) {
 	}
 }
 
-func TestSlice(t *testing.T) {
-	for _, tt := range []struct {
-		s    *Set[int]
-		want []int
-	}{
-		{Of[int](), []int(nil)},
-		{emptyOf[int](), []int(nil)},
-		{Of(3), []int{3}},
-		{Of(1, 3, 5), []int{1, 3, 5}},
-	} {
-		got := tt.s.Slice()
-		sort.Ints(got)
-		if !reflect.DeepEqual(got, tt.want) {
-			t.Errorf("%s.Slice(): got %v; want %v", tt.s.debug(), got, tt.want)
-		}
-	}
-}
-
 func TestEqual(t *testing.T) {
 	for _, tt := range []struct {
 		s1   *Set[int]
@@ -342,45 +325,22 @@ func TestLen(t *testing.T) {
 	}
 }
 
-func TestDo(t *testing.T) {
+func TestAll(t *testing.T) {
 	s := Of[int]()
-	s.Do(func(n int) bool {
-		t.Fatalf("%s.Do yielded element %d", s.debug(), n)
-		panic("unreached")
-	})
+	checkAll(t, s)
+
 	s = emptyOf[int]()
-	s.Do(func(n int) bool {
-		t.Fatalf("%s.Do yielded element %d", s.debug(), n)
-		panic("unreached")
-	})
+	checkAll(t, s)
 
 	s = Of(1, 2, 3, 4, 5)
-	var saw []int
-	s.Do(func(n int) bool {
-		saw = append(saw, n)
-		return true
-	})
-	sort.Ints(saw)
-	want := []int{1, 2, 3, 4, 5}
-	if !reflect.DeepEqual(saw, want) {
-		t.Errorf("%s.Do: saw elements %v; want %v", s.debug(), saw, want)
-	}
+	checkAll(t, s, 1, 2, 3, 4, 5)
+}
 
-	iter := 0
-	s.Do(func(int) bool {
-		iter++
-		switch {
-		case iter < 2:
-			return true
-		case iter == 2:
-			return false
-		default:
-			t.Fatalf("%s.Do called fn after it returned false", s.debug())
-			panic("unreached")
-		}
-	})
-	if iter != 2 {
-		t.Errorf("%s.Do called fn %d times", s, iter)
+func checkAll[E cmp.Ordered](t *testing.T, s *Set[E], want ...E) {
+	t.Helper()
+	got := slices.Sorted(s.All())
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("%s.All: got %v; want %v", s, got, want)
 	}
 }
 

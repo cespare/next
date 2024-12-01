@@ -6,6 +6,7 @@ package set
 
 import (
 	"fmt"
+	"iter"
 	"sort"
 	"strings"
 )
@@ -129,19 +130,6 @@ func (s *Set[E]) ContainsAll(s2 *Set[E]) bool {
 	return true
 }
 
-// Slice returns the elements in the set s as a slice.
-// The values will be in an indeterminate order.
-func (s *Set[E]) Slice() []E {
-	if len(s.m) == 0 {
-		return nil
-	}
-	vals := make([]E, 0, len(s.m))
-	for v := range s.m {
-		vals = append(vals, v)
-	}
-	return vals
-}
-
 // Equal reports whether s and s2 contain the same elements.
 func (s *Set[E]) Equal(s2 *Set[E]) bool {
 	if len(s.m) != len(s2.m) {
@@ -190,14 +178,15 @@ func (s *Set[E]) Len() int {
 	return len(s.m)
 }
 
-// Do calls f on every element in the set s,
-// stopping if f returns false.
-// f should not change s.
-// f will be called on values in an indeterminate order.
-func (s *Set[E]) Do(f func(E) bool) {
-	for v := range s.m {
-		if !f(v) {
-			return
+// All returns an iterator over the elements in the set.
+// The iteration order is not specified
+// and is not guaranteed to be the same from one call to the next.
+func (s *Set[E]) All() iter.Seq[E] {
+	return func(yield func(E) bool) {
+		for v := range s.m {
+			if !yield(v) {
+				return
+			}
 		}
 	}
 }

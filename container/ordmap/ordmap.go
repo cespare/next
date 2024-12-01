@@ -1,6 +1,8 @@
 // Package ordmap implements an ordered map type.
 package ordmap
 
+import "iter"
+
 // TODO(caleb): This list-based approach looks pretty cache-inefficient.
 // Add some benchmarks; optimize.
 
@@ -55,39 +57,40 @@ func (m *Map[K, V]) Delete(key K) {
 	delete(m.m, key)
 }
 
-// Range calls f sequentially for each key and value present in the map
-// following the map ordering: least recently updated first.
-// If f returns false, Range stops the iteration.
-func (m *Map[K, V]) Range(f func(key K, val V) bool) {
-	for e := m.first; e != nil; e = e.next {
-		if !f(e.k, e.v) {
-			return
+// All returns an iterator over key-value pairs in the map.
+// The iteration order follows the map ordering: least recently updated first.
+func (m *Map[K, V]) All() iter.Seq2[K, V] {
+	return func(yield func(K, V) bool) {
+		for e := m.first; e != nil; e = e.next {
+			if !yield(e.k, e.v) {
+				return
+			}
 		}
 	}
 }
 
-// Keys returns a slice of all keys in the map in map order.
-func (m *Map[K, V]) Keys() []K {
-	if len(m.m) == 0 {
-		return nil
+// Keys returns an iterator over keys in the map.
+// The iteration order follows the map ordering: least recently updated first.
+func (m *Map[K, V]) Keys() iter.Seq[K] {
+	return func(yield func(K) bool) {
+		for e := m.first; e != nil; e = e.next {
+			if !yield(e.k) {
+				return
+			}
+		}
 	}
-	keys := make([]K, 0, len(m.m))
-	for e := m.first; e != nil; e = e.next {
-		keys = append(keys, e.k)
-	}
-	return keys
 }
 
-// Values returns a slice of all values in the map in map order.
-func (m *Map[K, V]) Values() []V {
-	if len(m.m) == 0 {
-		return nil
+// Values returns an iterator over values in the map.
+// The iteration order follows the map ordering: least recently updated first.
+func (m *Map[K, V]) Values() iter.Seq[V] {
+	return func(yield func(V) bool) {
+		for e := m.first; e != nil; e = e.next {
+			if !yield(e.v) {
+				return
+			}
+		}
 	}
-	vals := make([]V, 0, len(m.m))
-	for e := m.first; e != nil; e = e.next {
-		vals = append(vals, e.v)
-	}
-	return vals
 }
 
 func (m *Map[K, V]) listAppend(e *element[K, V]) {

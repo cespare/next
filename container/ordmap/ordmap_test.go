@@ -1,6 +1,7 @@
 package ordmap
 
 import (
+	"slices"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -46,21 +47,6 @@ func TestMap(t *testing.T) {
 	checkAll(t, m, []keyVal[string, int]{{"x", 10}, {"y", 20}})
 }
 
-func TestRangeStop(t *testing.T) {
-	var calls int
-	var m Map[int, byte]
-	m.Set(3, 'a')
-	m.Set(4, 'b')
-	m.Set(5, 'c')
-	m.Range(func(key int, val byte) bool {
-		calls++
-		return key != 4
-	})
-	if calls != 2 {
-		t.Fatalf("Got %d calls to range callback; want 2", calls)
-	}
-}
-
 func checkGet[K, V comparable](t *testing.T, m *Map[K, V], key K, want V, wantOK bool) {
 	t.Helper()
 	got, ok := m.Get(key)
@@ -95,21 +81,20 @@ func checkAll[K, V comparable](t *testing.T, m *Map[K, V], kvs []keyVal[K, V]) {
 		vals = append(vals, kv.Val)
 	}
 
-	gotKeys := m.Keys()
+	gotKeys := slices.Collect(m.Keys())
 	if diff := cmp.Diff(gotKeys, keys); diff != "" {
 		t.Fatalf("Keys gave incorrect sequence (-got, +want):\n%s", diff)
 	}
-	gotVals := m.Values()
+	gotVals := slices.Collect(m.Values())
 	if diff := cmp.Diff(gotVals, vals); diff != "" {
 		t.Fatalf("Values gave incorrect sequence (-got, +want):\n%s", diff)
 	}
 
 	var gotKVs []keyVal[K, V]
-	m.Range(func(key K, val V) bool {
-		gotKVs = append(gotKVs, keyVal[K, V]{key, val})
-		return true
-	})
+	for k, v := range m.All() {
+		gotKVs = append(gotKVs, keyVal[K, V]{k, v})
+	}
 	if diff := cmp.Diff(gotKVs, kvs); diff != "" {
-		t.Fatalf("Range gave incorrect sequence (-got, +want):\n%s", diff)
+		t.Fatalf("All gave incorrect sequence (-got, +want):\n%s", diff)
 	}
 }
